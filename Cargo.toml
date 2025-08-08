@@ -3,11 +3,11 @@ members = ["beginner", "utils"]
 resolver = "3"
 
 [workspace.dependencies]
+wgpu = { version = "26.0.1", features = ["webgl"] }
 env_logger = "0.11.8"
 log = "0.4.27"
 parking_lot = "0.12.4"
 pollster = "0.4.0"
-wgpu = "26.0.1"
 winit = "0.30.12"
 cfg-if = "1.0.1"
 utils = { path = "utils" }

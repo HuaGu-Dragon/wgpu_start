@@ -13,10 +13,17 @@ fn main() {
 struct WgpuApp {
     #[allow(unused)]
     window: Arc<Window>,
+    // surface: wgpu::Surface<'static>,
+    // device: wgpu::Device,
+    // queue: wgpu::Queue,
+    // config: wgpu::SurfaceConfiguration,
+    // size: winit::dpi::PhysicalSize<u32>,
+    // size_changed: bool,
 }
 
 impl WgpuApp {
     async fn new(window: Arc<Window>) -> Self {
+        utils::init(window.clone());
         Self { window }
     }
 }
