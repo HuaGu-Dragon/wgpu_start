@@ -4,6 +4,7 @@ use parking_lot::Mutex;
 use winit::{application::ApplicationHandler, window::Window};
 
 fn main() {
+    utils::init_logger();
     let event_loop = winit::event_loop::EventLoop::new().unwrap();
     let mut app = WgpuAppHandler::default();
     event_loop.run_app(&mut app).unwrap();

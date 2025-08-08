@@ -4,9 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-env_logger = "0.11.8"
-log = "0.4.27"
-parking_lot = "0.12.4"
-pollster = "0.4.0"
-wgpu = "26.0.1"
-winit = "0.30.12"
+env_logger.workspace = true
+log.workspace = true
+parking_lot.workspace = true
+pollster.workspace = true
+wgpu.workspace = true
+winit.workspace = true
+utils.workspace = true
