@@ -306,7 +306,15 @@ impl ApplicationHandler for WgpuAppHandler {
         let app = app.as_mut().unwrap();
         match event {
             winit::event::WindowEvent::CloseRequested => event_loop.exit(),
-            winit::event::WindowEvent::Resized(size) => app.set_windows_size(size),
+            winit::event::WindowEvent::Resized(size) => {
+                if size.width == 0 || size.height == 0 {
+                    log::info!("Window minimized!");
+                } else {
+                    log::info!("Window resized: {:?}", size);
+
+                    app.set_windows_size(size);
+                }
+            }
             winit::event::WindowEvent::RedrawRequested => {
                 app.window.pre_present_notify();
 

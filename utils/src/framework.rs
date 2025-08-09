@@ -107,9 +107,23 @@ impl<A> WgpuAppHandler<A> {
             canvas.focus().expect("画布无法获取焦点");
         }
     }
+
+    /// 在提交渲染之前通知窗口系统。
+    fn pre_present_notify(&self) {
+        if let Some(window) = self.window.as_ref() {
+            window.pre_present_notify();
+        }
+    }
+
+    /// 请求重绘    
+    fn request_redraw(&self) {
+        if let Some(window) = self.window.as_ref() {
+            window.request_redraw();
+        }
+    }
 }
 
-impl<A: WgpuAppAction> ApplicationHandler for WgpuAppHandler<A> {
+impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
     fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
         if self.app.as_ref().lock().is_some() {
             return;
@@ -134,7 +148,7 @@ impl<A: WgpuAppAction> ApplicationHandler for WgpuAppHandler<A> {
                     *app = Some(wgpu_app);
 
                     if let Some(resize) = *missed_resize.lock() {
-                        app.as_mut().unwrap().set_window_resized(resize);
+                        app.as_mut().unwrap().set_window_size(resize);
                         window_cloned.request_redraw();
                     }
                 });
@@ -175,17 +189,14 @@ impl<A: WgpuAppAction> ApplicationHandler for WgpuAppHandler<A> {
                 }
             }
             WindowEvent::RedrawRequested => {
-                self.window
-                    .as_ref()
-                    .map(|window| window.pre_present_notify());
-
+                self.pre_present_notify();
                 match app.render() {
                     Ok(_) => {}
                     Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
                     Err(e) => eprintln!("{e:?}"),
                 }
 
-                self.window.as_ref().map(|window| window.request_redraw());
+                self.request_redraw();
             }
             WindowEvent::CloseRequested => {
                 event_loop.exit();
