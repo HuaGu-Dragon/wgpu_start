@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use parking_lot::Mutex;
-use winit::{application::ApplicationHandler, window::Window};
+use winit::{application::ApplicationHandler, event, keyboard::PhysicalKey, window::Window};
 
 fn main() {
     utils::init_logger();
@@ -19,6 +19,7 @@ struct WgpuApp {
     config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
     size_changed: bool,
+    clear_color: wgpu::Color,
 }
 
 impl WgpuApp {
@@ -71,6 +72,13 @@ impl WgpuApp {
         };
         surface.configure(&device, &config);
 
+        let clear_color = wgpu::Color {
+            r: 0.1,
+            g: 0.2,
+            b: 0.3,
+            a: 1.0,
+        };
+
         Self {
             window,
             surface,
@@ -79,6 +87,7 @@ impl WgpuApp {
             config,
             size,
             size_changed: false,
+            clear_color,
         }
     }
 
@@ -95,6 +104,21 @@ impl WgpuApp {
             self.config.width = self.size.width;
             self.config.height = self.size.height;
             self.surface.configure(&self.device, &self.config);
+        }
+    }
+
+    fn keyboard_input(&mut self, event: &winit::event::KeyEvent) {
+        if event.physical_key == PhysicalKey::Code(winit::keyboard::KeyCode::Enter) {
+            self.clear_color = if event.state == event::ElementState::Pressed {
+                wgpu::Color::BLACK
+            } else {
+                wgpu::Color {
+                    r: 0.1,
+                    g: 0.2,
+                    b: 0.3,
+                    a: 1.0,
+                }
+            }
         }
     }
 
@@ -123,12 +147,7 @@ impl WgpuApp {
                     depth_slice: None,
                     resolve_target: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.1,
-                            g: 0.2,
-                            b: 0.3,
-                            a: 1.0,
-                        }),
+                        load: wgpu::LoadOp::Clear(self.clear_color),
                         store: wgpu::StoreOp::Store,
                     },
                 })],
@@ -185,6 +204,7 @@ impl ApplicationHandler for WgpuAppHandler {
 
                 app.window.request_redraw();
             }
+            winit::event::WindowEvent::KeyboardInput { event, .. } => app.keyboard_input(&event),
             _ => {}
         }
     }

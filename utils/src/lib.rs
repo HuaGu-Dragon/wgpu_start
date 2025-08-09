@@ -22,7 +22,14 @@ pub fn init_logger() {
             //     .unwrap();
             std::panic::set_hook(Box::new(console_error_panic_hook::hook));
         } else {
-            env_logger::builder().filter_level(log::LevelFilter::Info).filter_module("wgpu_core", log::LevelFilter::Info).filter_module("wgpu_hal", log::LevelFilter::Error).filter_module("naga", log::LevelFilter::Error).parse_default_env().init();
+            env_logger::builder()
+                .filter_level(log::LevelFilter::Info)
+                .filter_module("wgpu_core", log::LevelFilter::Info)
+                .filter_module("wgpu_hal", log::LevelFilter::Error)
+                .filter_module("naga", log::LevelFilter::Error)
+                .parse_default_env()
+                .init();
+
         }
     }
 }
@@ -52,12 +59,12 @@ pub fn init(window: Arc<Window>) {
                     }
                 };
             })
-            .expect("无法将 canvas 添加到当前网页中");
+            .expect("cannot add canvas to current webpage");
 
         canvas.set_tab_index(0);
 
         let style = canvas.style();
         style.set_property("outline", "none").unwrap();
-        canvas.focus().expect("画布无法获取焦点");
+        canvas.focus().expect("canvas cannot gain focus");
     }
 }
