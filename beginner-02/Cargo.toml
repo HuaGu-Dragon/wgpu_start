@@ -7,3 +7,4 @@ edition = "2024"
 app-surface.workspace = true
 wgpu.workspace = true
 winit.workspace = true
+utils.workspace = true

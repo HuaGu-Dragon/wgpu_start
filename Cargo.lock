@@ -225,6 +225,7 @@ name = "beginner-02"
 version = "0.1.0"
 dependencies = [
  "app-surface",
+ "utils",
  "wgpu",
  "winit",
 ]
@@ -1843,6 +1844,8 @@ dependencies = [
  "console_log",
  "env_logger",
  "log",
+ "parking_lot",
+ "pollster",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
