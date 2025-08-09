@@ -68,6 +68,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc7eb209b1518d6bb87b283c20095f5228ecda460da70b44f0802523dea6da04"
 
 [[package]]
+name = "android_log-sys"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "84521a3cf562bc62942e294181d9eef17eb38ceb8c68677bc49f144e4c3d4f8d"
+
+[[package]]
+name = "android_logger"
+version = "0.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "05b07e8e73d720a1f2e4b6014766e6039fd2e96a4fa44e2a78d0e1fa2ff49826"
+dependencies = [
+ "android_log-sys",
+ "env_filter",
+ "log",
+]
+
+[[package]]
 name = "android_system_properties"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -127,6 +144,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "app-surface"
+version = "1.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee5fd8b031d705c7faac82315a54928239135dd9bf3720bff9d2869e6caea83b"
+dependencies = [
+ "android_logger",
+ "cfg-if",
+ "core-graphics-types 0.2.0",
+ "env_logger",
+ "glam",
+ "jni",
+ "libc",
+ "log",
+ "ndk-sys",
+ "objc",
+ "pollster",
+ "raw-window-handle",
+ "wasm-bindgen",
+ "web-sys",
+ "wgpu",
+ "winit",
+]
+
+[[package]]
 name = "arrayref"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -175,6 +216,15 @@ dependencies = [
  "parking_lot",
  "pollster",
  "utils",
+ "wgpu",
+ "winit",
+]
+
+[[package]]
+name = "beginner-02"
+version = "0.1.0"
+dependencies = [
+ "app-surface",
  "wgpu",
  "winit",
 ]
@@ -586,6 +636,12 @@ dependencies = [
  "log",
  "xml-rs",
 ]
+
+[[package]]
+name = "glam"
+version = "0.30.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2d1aab06663bdce00d6ca5e5ed586ec8d18033a771906c993a1e3755b368d85"
 
 [[package]]
 name = "glow"
@@ -1790,6 +1846,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+ "wgpu",
  "winit",
 ]
 

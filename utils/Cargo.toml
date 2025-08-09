@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+wgpu.workspace = true
 winit.workspace = true
 cfg-if.workspace = true
 env_logger.workspace = true
