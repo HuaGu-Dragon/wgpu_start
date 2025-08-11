@@ -1,23 +1,20 @@
+struct VertexInput {
+    @location(0) clip_position: vec3f,
+    @location(1) color: vec4f,
+};
+
 struct VertexOutput {
     @builtin(position) clip_position: vec4f,
-    @location(0) color: vec3f,
+    @location(0) color: vec4f,
 };
 
 @vertex
 fn vs_main(
-    @builtin(vertex_index) in_vertex_index: u32,
+    model: VertexInput
 ) -> VertexOutput {
     var out: VertexOutput;
-    let x = f32(1 - i32(in_vertex_index)) * 0.5;
-    let y = f32(i32(in_vertex_index & 1u) * 2 - 1) * 0.5;
-    if in_vertex_index == 0u {
-        out.color = vec3f(1.0, 0.0, 0.0);
-    } else if in_vertex_index == 1u {
-        out.color = vec3f(0.0, 1.0, 0.0);
-    } else {
-        out.color = vec3f(0.0, 0.0, 1.0);
-    }
-    out.clip_position = vec4f(x, y, 0.0, 1.0);
+    out.color = model.color;
+    out.clip_position = vec4f(model.clip_position, 1.0);
     return out;
 }
 
@@ -25,5 +22,5 @@ fn vs_main(
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
-    return vec4f(in.color, 1.0);
+    return vec4f(in.color);
 }

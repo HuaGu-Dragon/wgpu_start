@@ -167,6 +167,12 @@ impl WgpuApp {
             source: wgpu::ShaderSource::Wgsl(include_str!("challenge.wgsl").into()),
         });
 
+        let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Vertex Buffer"),
+            contents: bytemuck::cast_slice(VERTICES),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+
         let other_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("Render Pipeline"),
             layout: Some(&render_pipeline_layout),
@@ -174,7 +180,14 @@ impl WgpuApp {
                 module: &shader,
                 entry_point: Some("vs_main"),
                 compilation_options: Default::default(),
-                buffers: &[],
+                buffers: &[wgpu::VertexBufferLayout {
+                    array_stride: core::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &wgpu::vertex_attr_array![
+                        0 => Float32x3,
+                        1 => Float32x4
+                    ],
+                }],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
@@ -205,12 +218,6 @@ impl WgpuApp {
             // indicates how many array layers the attachments will have.
             multiview: None,
             cache: None,
-        });
-
-        let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Vertex Buffer"),
-            contents: bytemuck::cast_slice(VERTICES),
-            usage: wgpu::BufferUsages::VERTEX,
         });
 
         Self {
@@ -293,6 +300,7 @@ impl WgpuApp {
                 ..Default::default()
             });
 
+            render_pass.set_vertex_buffer(0, self.buffer.slice(..));
             render_pass.set_pipeline(if self.use_color {
                 &self.render_pipeline
             } else {
