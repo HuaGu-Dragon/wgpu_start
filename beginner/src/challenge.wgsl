@@ -10,9 +10,9 @@ fn vs_main(
     var out: VertexOutput;
     let x = f32(1 - i32(in_vertex_index)) * 0.5;
     let y = f32(i32(in_vertex_index & 1u) * 2 - 1) * 0.5;
-    if (in_vertex_index == 0) {
+    if in_vertex_index == 0u {
         out.color = vec3f(1.0, 0.0, 0.0);
-    } else if (in_vertex_index == 1) {
+    } else if in_vertex_index == 1u {
         out.color = vec3f(0.0, 1.0, 0.0);
     } else {
         out.color = vec3f(0.0, 0.0, 1.0);
