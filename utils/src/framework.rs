@@ -77,7 +77,6 @@ impl<A> WgpuAppHandler<A> {
         {
             let canvas = window.canvas().unwrap();
 
-            // 将 canvas 添加到当前网页中
             web_sys::window()
                 .and_then(|win| win.document())
                 .map(|doc| {
@@ -97,11 +96,8 @@ impl<A> WgpuAppHandler<A> {
                 })
                 .expect("无法将 canvas 添加到当前网页中");
 
-            // 确保画布可以获得焦点
-            // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
             canvas.set_tab_index(0);
 
-            // 设置画布获得焦点时不显示高亮轮廓
             let style = canvas.style();
             style.set_property("outline", "none").unwrap();
             canvas.focus().expect("画布无法获取焦点");
