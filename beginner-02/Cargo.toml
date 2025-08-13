@@ -9,3 +9,4 @@ wgpu.workspace = true
 winit.workspace = true
 utils.workspace = true
 bytemuck.workspace = true
+image.workspace = true
