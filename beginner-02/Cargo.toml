@@ -8,3 +8,4 @@ app-surface.workspace = true
 wgpu.workspace = true
 winit.workspace = true
 utils.workspace = true
+bytemuck.workspace = true

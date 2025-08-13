@@ -1,5 +1,7 @@
 use app_surface::{AppSurface, SurfaceFrame};
+use bytemuck::{Pod, Zeroable};
 use utils::framework::run;
+use wgpu::util::DeviceExt;
 use winit::dpi::PhysicalSize;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -7,11 +9,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+struct Vertex {
+    position: [f32; 3],
+    color: [f32; 3],
+}
+
+const VERTICES: &[Vertex] = &[
+    Vertex {
+        position: [0.0, 0.5, 0.0],
+        color: [1.0, 0.0, 0.0],
+    },
+    Vertex {
+        position: [-0.5, -0.5, 0.0],
+        color: [0.0, 1.0, 0.0],
+    },
+    Vertex {
+        position: [0.5, -0.5, 0.0],
+        color: [0.0, 0.0, 1.0],
+    },
+];
+
 struct WgpuApp {
     app: AppSurface,
     size: PhysicalSize<u32>,
     size_changed: bool,
     render_pipeline: wgpu::RenderPipeline,
+    vertex_buffer: wgpu::Buffer,
 }
 
 impl WgpuApp {
@@ -43,6 +68,14 @@ impl utils::framework::WgpuAppAction for WgpuApp {
                     push_constant_ranges: &[],
                 });
 
+        let buffer = app
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Vertex Buffer"),
+                contents: bytemuck::cast_slice(VERTICES),
+                usage: wgpu::BufferUsages::VERTEX,
+            });
+
         let render_pipeline = app
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -52,7 +85,14 @@ impl utils::framework::WgpuAppAction for WgpuApp {
                     module: &shader,
                     entry_point: Some("vs_main"),
                     compilation_options: Default::default(),
-                    buffers: &[],
+                    buffers: &[wgpu::VertexBufferLayout {
+                        array_stride: core::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+                        step_mode: wgpu::VertexStepMode::Vertex,
+                        attributes: &wgpu::vertex_attr_array![
+                            0 => Float32x3,
+                            1 => Float32x3,
+                        ],
+                    }],
                 },
 
                 primitive: wgpu::PrimitiveState {
@@ -94,6 +134,7 @@ impl utils::framework::WgpuAppAction for WgpuApp {
             size,
             size_changed: false,
             render_pipeline,
+            vertex_buffer: buffer,
         }
     }
 
@@ -144,8 +185,8 @@ impl utils::framework::WgpuAppAction for WgpuApp {
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.4,
-                            g: 0.1,
+                            r: 0.1,
+                            g: 0.2,
                             b: 0.3,
                             a: 1.0,
                         }),
@@ -156,6 +197,7 @@ impl utils::framework::WgpuAppAction for WgpuApp {
             });
 
             render_pass.set_pipeline(&self.render_pipeline);
+            render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
             render_pass.draw(0..3, 0..1);
         }
 
