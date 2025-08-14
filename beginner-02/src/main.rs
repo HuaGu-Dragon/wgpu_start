@@ -267,11 +267,12 @@ impl utils::framework::WgpuAppAction for WgpuApp {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        if self.size.width == 0 || self.size.height == 0 {
+        let current_size = self.app.get_view().inner_size();
+
+        if current_size.height == 0 || current_size.width == 0 {
             return Ok(());
         }
 
-        let current_size = self.app.get_view().inner_size();
         if current_size.width != self.app.config.width
             || current_size.height != self.app.config.height
         {
@@ -280,10 +281,7 @@ impl utils::framework::WgpuAppAction for WgpuApp {
         }
         self.resize();
 
-        let output = self.app.surface.get_current_texture()?;
-        let view = output
-            .texture
-            .create_view(&wgpu::TextureViewDescriptor::default());
+        let (output, view) = self.app.get_current_frame_view(None);
         let mut encoder = self
             .app
             .device
