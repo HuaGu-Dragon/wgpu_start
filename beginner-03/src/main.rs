@@ -66,6 +66,8 @@ struct WgpuApp {
     index_buffer: wgpu::Buffer,
     diffuse_bind_group: wgpu::BindGroup,
     camera: camera::Camera,
+    camera_uniform: camera::CameraUniform,
+    camera_buffer: wgpu::Buffer,
     camera_bind_group: wgpu::BindGroup,
     size: PhysicalSize<u32>,
     change: bool,
@@ -283,6 +285,8 @@ impl WgpuApp {
             index_buffer,
             diffuse_bind_group,
             camera,
+            camera_uniform,
+            camera_buffer,
             camera_bind_group,
             size: PhysicalSize::new(width, height),
             change: false,
@@ -362,6 +366,15 @@ impl WgpuApp {
         self.queue.submit(Some(encoder.finish()));
         output.present();
     }
+
+    fn update(&mut self) {
+        self.camera_uniform.update_view_proj(&self.camera);
+        self.queue.write_buffer(
+            &self.camera_buffer,
+            0,
+            bytemuck::cast_slice(&[self.camera_uniform]),
+        );
+    }
 }
 
 #[derive(Default)]
@@ -400,6 +413,8 @@ impl ApplicationHandler for WgpuAppHandler {
                 app.set_size(physical_size);
             }
             winit::event::WindowEvent::RedrawRequested => {
+                app.update();
+
                 app.window.pre_present_notify();
 
                 app.render();
