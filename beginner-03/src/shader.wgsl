@@ -8,12 +8,18 @@ struct VertexOutput {
     @location(0) tex_coord: vec2f,
 };
 
+struct CameraUniform {
+    view_proj: mat4x4f,
+}
+@group(1) @binding(0)
+var<uniform> camera: CameraUniform;
+
 @vertex
 fn vs_main(
     input: VertexInput
 ) -> VertexOutput {
     var out: VertexOutput;
-    out.clip_position = vec4f(input.position, 1.0);
+    out.clip_position = camera.view_proj * vec4f(input.position, 1.0);
     out.tex_coord = input.tex_coord;
     return out;
 }

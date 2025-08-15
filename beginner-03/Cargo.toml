@@ -13,3 +13,4 @@ utils.workspace = true
 bytemuck.workspace = true
 pollster.workspace = true
 image.workspace = true
+glam.workspace = true

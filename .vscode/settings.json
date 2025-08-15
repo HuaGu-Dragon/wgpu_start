@@ -1,6 +1,9 @@
 {
   "cSpell.words": [
+    "fovy",
     "multisampled",
-    "Unorm"
+    "Unorm",
+    "zfar",
+    "znear"
   ]
 }
