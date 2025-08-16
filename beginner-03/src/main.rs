@@ -13,6 +13,7 @@ use winit::{
 use crate::camera::{Camera, CameraUniform};
 
 mod camera;
+mod control;
 mod texture;
 
 fn main() {
@@ -69,6 +70,7 @@ struct WgpuApp {
     camera_uniform: camera::CameraUniform,
     camera_buffer: wgpu::Buffer,
     camera_bind_group: wgpu::BindGroup,
+    controller: control::PlayerController,
     size: PhysicalSize<u32>,
     change: bool,
 }
@@ -288,6 +290,7 @@ impl WgpuApp {
             camera_uniform,
             camera_buffer,
             camera_bind_group,
+            controller: control::PlayerController::default(),
             size: PhysicalSize::new(width, height),
             change: false,
         }
@@ -307,6 +310,7 @@ impl WgpuApp {
             self.config.width = self.size.width;
             self.config.height = self.size.height;
             self.surface.configure(&self.device, &self.config);
+            self.camera.aspect = self.config.width as f32 / self.config.height as f32;
         }
     }
 
@@ -368,6 +372,7 @@ impl WgpuApp {
     }
 
     fn update(&mut self) {
+        self.controller.update_camera(&mut self.camera);
         self.camera_uniform.update_view_proj(&self.camera);
         self.queue.write_buffer(
             &self.camera_buffer,
@@ -420,6 +425,9 @@ impl ApplicationHandler for WgpuAppHandler {
                 app.render();
 
                 app.window.request_redraw();
+            }
+            winit::event::WindowEvent::KeyboardInput { event, .. } => {
+                app.controller.handle_keyboard_input(event);
             }
             winit::event::WindowEvent::CloseRequested => event_loop.exit(),
             _ => {}
