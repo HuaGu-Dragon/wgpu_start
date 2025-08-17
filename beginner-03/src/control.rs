@@ -70,5 +70,16 @@ impl PlayerController {
         if self.backward {
             camera.eye -= camera_norm * self.speed;
         }
+
+        let right = camera_norm.cross(camera.up).normalize();
+
+        let forward = camera.target - camera.eye;
+        let forward_mag = forward.length();
+        if self.right {
+            camera.eye = camera.target - (forward + right * self.speed).normalize() * forward_mag;
+        }
+        if self.left {
+            camera.eye = camera.target - (forward - right * self.speed).normalize() * forward_mag;
+        }
     }
 }
