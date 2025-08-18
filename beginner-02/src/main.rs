@@ -66,6 +66,7 @@ impl WgpuApp {
         if self.size_changed {
             self.app
                 .resize_surface_by_size((self.size.width, self.size.height));
+            self.camera.aspect = self.size.width as f32 / self.size.height as f32;
             self.size_changed = false;
         }
     }
