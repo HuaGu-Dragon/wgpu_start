@@ -1,4 +1,6 @@
 use std::sync::Arc;
+pub mod camera;
+pub mod control;
 pub mod framework;
 
 use winit::window::Window;

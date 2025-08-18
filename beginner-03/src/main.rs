@@ -2,6 +2,10 @@ use std::sync::Arc;
 
 use bytemuck::{Pod, Zeroable};
 use parking_lot::Mutex;
+use utils::{
+    camera::{self, Camera, CameraUniform},
+    control,
+};
 use wgpu::util::DeviceExt;
 use winit::{
     application::ApplicationHandler,
@@ -10,10 +14,6 @@ use winit::{
     window::{Window, WindowAttributes},
 };
 
-use crate::camera::{Camera, CameraUniform};
-
-mod camera;
-mod control;
 mod texture;
 
 fn main() {
