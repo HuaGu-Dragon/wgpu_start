@@ -22,9 +22,7 @@ pub trait WgpuAppAction {
 
     fn get_size(&self) -> PhysicalSize<u32>;
 
-    fn keyboard_input(&mut self, _event: &KeyEvent) -> bool {
-        false
-    }
+    fn keyboard_input(&mut self, _event: KeyEvent) {}
 
     fn mouse_click(&mut self, _state: ElementState, _button: MouseButton) -> bool {
         false
@@ -43,6 +41,8 @@ pub trait WgpuAppAction {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError>;
+
+    fn update(&mut self) {}
 }
 
 struct WgpuAppHandler<A> {
@@ -185,6 +185,8 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
                 }
             }
             WindowEvent::RedrawRequested => {
+                app.update();
+
                 self.pre_present_notify();
                 match app.render() {
                     Ok(_) => {}
@@ -197,6 +199,8 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
             WindowEvent::CloseRequested => {
                 event_loop.exit();
             }
+            WindowEvent::KeyboardInput { event, .. } => app.keyboard_input(event),
+
             _ => {}
         }
     }

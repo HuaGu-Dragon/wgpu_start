@@ -10,6 +10,7 @@ winit.workspace = true
 utils.workspace = true
 bytemuck.workspace = true
 image.workspace = true
+glam.workspace = true
 
 [features]
 webgl = ["wgpu/webgl", "app-surface/webgl"]

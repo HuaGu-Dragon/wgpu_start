@@ -233,6 +233,7 @@ version = "0.1.0"
 dependencies = [
  "app-surface",
  "bytemuck",
+ "glam",
  "image",
  "utils",
  "wgpu",
