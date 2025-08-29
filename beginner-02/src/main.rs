@@ -20,6 +20,34 @@ struct Vertex {
     tex_coords: [f32; 2],
 }
 
+struct Instance {
+    position: glam::Vec3,
+    rotation: glam::Quat,
+}
+
+impl Instance {
+    fn to_raw(&self) -> InstanceRaw {
+        InstanceRaw {
+            model: (glam::Mat4::from_translation(self.position)
+                * glam::Mat4::from_quat(self.rotation))
+            .to_cols_array_2d(),
+        }
+    }
+}
+
+const NUM_INSTANCES_PER_ROW: u32 = 10;
+const INSTANCE_DISPLACEMENT: glam::Vec3 = glam::Vec3::new(
+    NUM_INSTANCES_PER_ROW as f32 * 0.5,
+    0.0,
+    NUM_INSTANCES_PER_ROW as f32 * 0.5,
+);
+
+#[repr(C)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+struct InstanceRaw {
+    model: [[f32; 4]; 4],
+}
+
 const VERTICES: &[Vertex] = &[
     // 修改后的
     Vertex {
@@ -59,6 +87,8 @@ struct WgpuApp {
     camera_buffer: wgpu::Buffer,
     camera_bind_group: wgpu::BindGroup,
     control: PlayerController,
+    instances: Vec<Instance>,
+    instance_buffer: wgpu::Buffer,
 }
 
 impl WgpuApp {
@@ -254,14 +284,44 @@ impl utils::framework::WgpuAppAction for WgpuApp {
                     module: &shader,
                     entry_point: Some("vs_main"),
                     compilation_options: Default::default(),
-                    buffers: &[wgpu::VertexBufferLayout {
-                        array_stride: core::mem::size_of::<Vertex>() as wgpu::BufferAddress,
-                        step_mode: wgpu::VertexStepMode::Vertex,
-                        attributes: &wgpu::vertex_attr_array![
-                            0 => Float32x3,
-                            1 => Float32x2,
-                        ],
-                    }],
+                    buffers: &[
+                        wgpu::VertexBufferLayout {
+                            array_stride: core::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+                            step_mode: wgpu::VertexStepMode::Vertex,
+                            attributes: &wgpu::vertex_attr_array![
+                                0 => Float32x3,
+                                1 => Float32x2,
+                            ],
+                        },
+                        wgpu::VertexBufferLayout {
+                            array_stride: core::mem::size_of::<InstanceRaw>()
+                                as wgpu::BufferAddress,
+                            step_mode: wgpu::VertexStepMode::Instance,
+                            attributes: &[
+                                wgpu::VertexAttribute {
+                                    offset: 0,
+                                    shader_location: 5,
+                                    format: wgpu::VertexFormat::Float32x4,
+                                },
+                                wgpu::VertexAttribute {
+                                    offset: core::mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
+                                    shader_location: 6,
+                                    format: wgpu::VertexFormat::Float32x4,
+                                },
+                                wgpu::VertexAttribute {
+                                    offset: core::mem::size_of::<[f32; 8]>() as wgpu::BufferAddress,
+                                    shader_location: 7,
+                                    format: wgpu::VertexFormat::Float32x4,
+                                },
+                                wgpu::VertexAttribute {
+                                    offset: core::mem::size_of::<[f32; 12]>()
+                                        as wgpu::BufferAddress,
+                                    shader_location: 8,
+                                    format: wgpu::VertexFormat::Float32x4,
+                                },
+                            ],
+                        },
+                    ],
                 },
 
                 primitive: wgpu::PrimitiveState {
@@ -298,6 +358,38 @@ impl utils::framework::WgpuAppAction for WgpuApp {
             height: app.config.height,
         };
 
+        let instances = (0..NUM_INSTANCES_PER_ROW)
+            .flat_map(|z| {
+                (0..NUM_INSTANCES_PER_ROW).map(move |x| {
+                    let position = glam::Vec3 {
+                        x: x as f32,
+                        y: 0.0,
+                        z: z as f32,
+                    } - INSTANCE_DISPLACEMENT;
+
+                    let rotation = if position.length().abs() <= f32::EPSILON {
+                        glam::Quat::from_axis_angle(glam::Vec3::Z, 0.0)
+                    } else {
+                        glam::Quat::from_axis_angle(
+                            position.normalize(),
+                            std::f32::consts::FRAC_PI_4,
+                        )
+                    };
+
+                    Instance { position, rotation }
+                })
+            })
+            .collect::<Vec<_>>();
+
+        let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
+        let instance_buffer = app
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Instance Buffer"),
+                contents: bytemuck::cast_slice(&instance_data),
+                usage: wgpu::BufferUsages::VERTEX,
+            });
+
         Self {
             app,
             size,
@@ -311,6 +403,8 @@ impl utils::framework::WgpuAppAction for WgpuApp {
             camera_buffer,
             camera_bind_group,
             control: PlayerController::default(),
+            instances,
+            instance_buffer,
         }
     }
 
@@ -392,7 +486,10 @@ impl utils::framework::WgpuAppAction for WgpuApp {
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
             render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
 
-            render_pass.draw_indexed(0..9, 0, 0..1);
+            render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
+            render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+
+            render_pass.draw_indexed(0..9, 0, 0..self.instances.len() as u32);
         }
 
         self.app.queue.submit(Some(encoder.finish()));
