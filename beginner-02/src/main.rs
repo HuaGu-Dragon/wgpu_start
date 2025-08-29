@@ -297,28 +297,11 @@ impl utils::framework::WgpuAppAction for WgpuApp {
                             array_stride: core::mem::size_of::<InstanceRaw>()
                                 as wgpu::BufferAddress,
                             step_mode: wgpu::VertexStepMode::Instance,
-                            attributes: &[
-                                wgpu::VertexAttribute {
-                                    offset: 0,
-                                    shader_location: 5,
-                                    format: wgpu::VertexFormat::Float32x4,
-                                },
-                                wgpu::VertexAttribute {
-                                    offset: core::mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
-                                    shader_location: 6,
-                                    format: wgpu::VertexFormat::Float32x4,
-                                },
-                                wgpu::VertexAttribute {
-                                    offset: core::mem::size_of::<[f32; 8]>() as wgpu::BufferAddress,
-                                    shader_location: 7,
-                                    format: wgpu::VertexFormat::Float32x4,
-                                },
-                                wgpu::VertexAttribute {
-                                    offset: core::mem::size_of::<[f32; 12]>()
-                                        as wgpu::BufferAddress,
-                                    shader_location: 8,
-                                    format: wgpu::VertexFormat::Float32x4,
-                                },
+                            attributes: &wgpu::vertex_attr_array![
+                                5 => Float32x4,
+                                6 => Float32x4,
+                                7 => Float32x4,
+                                8 => Float32x4,
                             ],
                         },
                     ],
