@@ -5,7 +5,7 @@ use utils::{
     control::PlayerController,
     framework::run,
 };
-use wgpu::util::DeviceExt;
+use wgpu::{Extent3d, util::DeviceExt};
 use winit::dpi::PhysicalSize;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -89,6 +89,8 @@ struct WgpuApp {
     control: PlayerController,
     instances: Vec<Instance>,
     instance_buffer: wgpu::Buffer,
+    depth_texture: wgpu::Texture,
+    depth_view: wgpu::TextureView,
 }
 
 impl WgpuApp {
@@ -96,6 +98,26 @@ impl WgpuApp {
         if self.size_changed {
             self.app
                 .resize_surface_by_size((self.size.width, self.size.height));
+            let depth_size = Extent3d {
+                width: self.app.config.width,
+                height: self.app.config.height,
+                depth_or_array_layers: 1,
+            };
+            let desc = wgpu::TextureDescriptor {
+                label: Some("Depth Texture"),
+                size: depth_size,
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Depth32Float,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                    | wgpu::TextureUsages::TEXTURE_BINDING,
+                view_formats: &[],
+            };
+            self.depth_texture = self.app.device.create_texture(&desc);
+            self.depth_view = self
+                .depth_texture
+                .create_view(&wgpu::TextureViewDescriptor::default());
             self.camera.aspect = self.size.width as f32 / self.size.height as f32;
             self.size_changed = false;
         }
@@ -244,6 +266,24 @@ impl utils::framework::WgpuAppAction for WgpuApp {
             label: Some("camera_bind_group"),
         });
 
+        let depth_size = Extent3d {
+            width: app.config.width,
+            height: app.config.height,
+            depth_or_array_layers: 1,
+        };
+        let desc = wgpu::TextureDescriptor {
+            label: Some("Depth Texture"),
+            size: depth_size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth32Float,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+            view_formats: &[],
+        };
+        let depth_texture = app.device.create_texture(&desc);
+        let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
+
         let shader = app
             .device
             .create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -316,7 +356,13 @@ impl utils::framework::WgpuAppAction for WgpuApp {
                     polygon_mode: wgpu::PolygonMode::Fill,
                     conservative: false,
                 },
-                depth_stencil: None,
+                depth_stencil: Some(wgpu::DepthStencilState {
+                    format: wgpu::TextureFormat::Depth32Float,
+                    depth_write_enabled: true,
+                    depth_compare: wgpu::CompareFunction::Less,
+                    stencil: wgpu::StencilState::default(),
+                    bias: wgpu::DepthBiasState::default(),
+                }),
                 multisample: wgpu::MultisampleState {
                     count: 1,
                     mask: !0,
@@ -388,6 +434,8 @@ impl utils::framework::WgpuAppAction for WgpuApp {
             control: PlayerController::default(),
             instances,
             instance_buffer,
+            depth_texture,
+            depth_view,
         }
     }
 
@@ -458,6 +506,14 @@ impl utils::framework::WgpuAppAction for WgpuApp {
                         store: wgpu::StoreOp::Store,
                     },
                 })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &self.depth_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(1.0),
+                        store: wgpu::StoreOp::Store,
+                    }),
+                    stencil_ops: None,
+                }),
                 ..Default::default()
             });
 
